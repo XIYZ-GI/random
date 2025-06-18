@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>随机数生成器</title>
     
-    <!-- 引入 Tailwind CSS for styling -->
+    <!-- Using Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* 自定义样式 */
+        /* Custom styles */
         body {
-            /* 使用系统默认字体，确保在国内网络环境下快速加载和良好显示 */
+            /* Use system default fonts to ensure fast loading and good display */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+            overflow: hidden; /* Prevent bouncing on mobile */
         }
         
-        /* 卡片玻璃拟态效果 */
+        /* Glass card effect */
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
@@ -24,7 +25,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
-        /* 隐藏滚动条 */
+        /* Hide scrollbar */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -33,7 +34,7 @@
             scrollbar-width: none;
         }
 
-        /* 自定义焦点样式 */
+        /* Custom focus ring style */
         .focus-ring-purple {
             transition: box-shadow 0.2s ease-in-out;
         }
@@ -42,12 +43,12 @@
             box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.6);
         }
 
-        /* 平滑过渡动画 */
+        /* Smooth transition animation */
         .transition-all-smooth {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 模态框进入动画 */
+        /* Modal entrance animation */
         .modal-enter {
             opacity: 0;
             transform: scale(0.95);
@@ -58,10 +59,12 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4 transition-all-smooth bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900">
+<!-- [UI FIX] Use h-[100svh] to prevent virtual keyboard from pushing the layout up -->
+<body class="bg-gray-900 text-white flex items-center justify-center p-4 transition-all-smooth bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 h-[100svh]">
 
-    <!-- 主生成器容器 -->
-    <div id="generator-container" class="w-full max-w-md mx-auto">
+    <!-- Main generator container -->
+    <!-- [UI FIX] Changed max-w-md to max-w-lg for a wider card on desktop -->
+    <div id="generator-container" class="w-full max-w-lg mx-auto">
         <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-2xl shadow-purple-500/10">
             <h1 id="main-title" class="text-3xl font-bold text-center mb-6 cursor-pointer select-none">随机数生成器</h1>
             
@@ -92,24 +95,24 @@
         <p id="error-msg" class="text-red-400 text-center mt-4 h-5"></p>
     </div>
 
-    <!-- 作弊模式模态框 -->
+    <!-- Cheat mode modal -->
     <div id="cheat-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden transition-all-smooth modal-enter">
         <div class="glass-card w-full max-w-lg rounded-2xl shadow-2xl shadow-purple-500/20 relative transform transition-all-smooth">
             <button id="close-cheat-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">&times;</button>
             <div class="p-6 sm:p-8">
                 <h2 class="text-2xl font-bold mb-1">作弊模式</h2>
-                <p class="text-sm text-gray-400 mb-6">低调使用，后果自负</p>
+                <p class="text-sm text-gray-400 mb-6">低调使用，后果自负。</p>
 
-                <!-- Tab 切换 -->
+                <!-- Tabs -->
                 <div class="flex border-b border-gray-700 mb-4">
                     <button data-tab="mode1" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-purple-500 text-white">自定义序列</button>
                     <button data-tab="mode2" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">N次内必中</button>
                     <button data-tab="mode3" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">概率权重</button>
                 </div>
 
-                <!-- Tab 内容 -->
+                <!-- Tab Content -->
                 <div id="cheat-content" class="min-h-[250px]">
-                    <!-- Mode 1: 自定义序列 -->
+                    <!-- Mode 1: Custom Sequence -->
                     <div id="mode1-content" class="tab-content space-y-4">
                         <p class="text-sm text-gray-300">输入一个数字序列，用逗号、空格或换行分隔。</p>
                         <textarea id="custom-sequence" rows="3" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple no-scrollbar" placeholder="例如: 7, 77, 777"></textarea>
@@ -122,31 +125,31 @@
                         </div>
                     </div>
 
-                    <!-- Mode 2: N次内必中 -->
+                    <!-- Mode 2: Guaranteed within N times -->
                     <div id="mode2-content" class="tab-content space-y-4 hidden">
                          <p class="text-sm text-gray-300">在指定的次数内，保证下列数字至少出现一次。</p>
                         <div>
                              <label class="text-sm font-medium text-gray-300">必中数字 (用逗号分隔):</label>
-                             <input type="text" id="guaranteed-numbers" class="w-full mt-1 bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple" placeholder="例如: 8, 88">
+                             <input type="text" id="guaranteed-numbers" class="w-full mt-1 bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple" placeholder="例如: 1, 5, 8">
                         </div>
                         <div>
-                             <label class="text-sm font-medium text-gray-300">在接下来 <span id="n-times-value" class="font-bold text-purple-400">5</span> 次内生效:</label>
-                             <input type="range" id="n-times" min="1" max="50" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                             <label class="text-sm font-medium text-gray-300">在接下来 <span id="n-times-value" class="font-bold text-purple-400">7</span> 次内生效:</label>
+                             <input type="range" id="n-times" min="1" max="50" value="7" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
                         </div>
                         <div class="flex items-center space-x-4">
                             <label class="text-sm text-gray-300">结束后:</label>
                             <div class="flex items-center gap-4">
-                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">循环必中数</span></label>
-                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">恢复正常</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">循环此规则</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">恢复正常</span></label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mode 3: 概率权重 -->
+                    <!-- Mode 3: Probability Weight -->
                     <div id="mode3-content" class="tab-content space-y-4 hidden">
                         <p class="text-sm text-gray-300">为范围内的特定数字设置概率倍数（1倍为正常概率）。</p>
                         <div id="probability-weights" class="max-h-48 overflow-y-auto space-y-2 pr-2 no-scrollbar">
-                           <!-- 权重输入框将动态生成于此 -->
+                           <!-- Weight inputs will be dynamically generated here -->
                            <p class="text-gray-500 text-sm">请先在主界面设置有效的数字范围。</p>
                         </div>
                     </div>
@@ -213,8 +216,8 @@
                 resultDisplay.classList.add('text-6xl');
                 
                 let currentIteration = 0;
-                const maxIterations = 20; // 总共跳动20次
-                let intervalTime = 50; // 初始间隔
+                const maxIterations = 20; 
+                let intervalTime = 50; 
 
                 const animationStep = () => {
                     const { min, max } = validateInputs();
@@ -233,12 +236,11 @@
                         return;
                     }
                     
-                    // **[OPTIMIZED]** 速度减慢的逻辑调整，使其不会在结尾过慢
                     if (currentIteration > maxIterations * 0.5) {
-                        intervalTime *= 1.08; // 减小减速率
+                        intervalTime *= 1.08;
                     }
                      if (currentIteration > maxIterations * 0.8) {
-                        intervalTime *= 1.15; // 减小最后阶段的减速率
+                        intervalTime *= 1.15;
                     }
                     
                     setTimeout(animationStep, intervalTime);
@@ -272,32 +274,46 @@
                 }
 
                 if (mode === 'guaranteed') {
-                    if (settings.drawsLeft > 0 && settings.numbersToPlace.length > 0) {
-                        settings.drawsLeft--;
-                        const shouldPlaceGuaranteed = Math.random() < (settings.numbersToPlace.length / (settings.drawsLeft + 1));
-                        
-                        if (shouldPlaceGuaranteed) {
-                             const index = Math.floor(Math.random() * settings.numbersToPlace.length);
-                             const number = settings.numbersToPlace[index];
-                             settings.numbersToPlace.splice(index, 1);
-                             return number;
-                        }
-                    } else if (settings.drawsLeft === 0) {
-                        if (settings.loop && settings.originalGuaranteed.length > 0) {
-                             const number = settings.originalGuaranteed[settings.loopIndex];
-                             settings.loopIndex = (settings.loopIndex + 1) % settings.originalGuaranteed.length;
-                             return number;
+                    // **[BUG FIX & EXPLANATION]**
+                    // This logic ensures the loop works correctly.
+
+                    // 1. Check if the previous cycle has just finished (drawsLeft is 0 or less).
+                    if (settings.drawsLeft <= 0) {
+                        if (settings.loop) {
+                            // 2. If looping is on, completely reset the state for a new cycle.
+                            console.log("Guaranteed mode: Resetting for a new loop cycle.");
+                            settings.numbersToPlace = [...settings.originalGuaranteed];
+                            settings.drawsLeft = settings.originalDraws;
                         } else {
+                            // 3. If not looping, the cheat mode is over. Disable it.
+                            console.log("Guaranteed mode: Cycle finished, not looping. Disabling cheat.");
                             disableCheatMode();
+                            return getNormalRandom(min, max);
                         }
                     }
-                    return getNormalRandom(min, max);
+
+                    // 4. Now, with a valid (or newly reset) state, execute the logic for the CURRENT turn.
+                    let numberToReturn = getNormalRandom(min, max); // Default to a normal random number.
+
+                    if (settings.numbersToPlace.length > 0) {
+                         // The probability of placing a guaranteed number increases as fewer draws are left.
+                         const probability = settings.numbersToPlace.length / settings.drawsLeft;
+                         if (Math.random() < probability) {
+                             const index = Math.floor(Math.random() * settings.numbersToPlace.length);
+                             numberToReturn = settings.numbersToPlace.splice(index, 1)[0];
+                         }
+                    }
+                    
+                    // 5. Decrement the counter for the current cycle *after* this turn's logic is complete.
+                    settings.drawsLeft--;
+                    
+                    return numberToReturn;
                 }
+
 
                 if (mode === 'probability') {
                     const weightedArray = [];
                     for (let i = min; i <= max; i++) {
-                        // 权重可以是小数，通过乘以10来增加精度
                         const weight = Math.round((settings.weights[i] || 1) * 10);
                         for (let j = 0; j < weight; j++) {
                             weightedArray.push(i);
@@ -325,11 +341,11 @@
                     finalNumber = getCheatedNumber(min, max);
                 }
                 
-                if(finalNumber < min || finalNumber > max) {
-                    console.warn('作弊数值超出范围，已重置为范围内随机数。');
+                if(typeof finalNumber !== 'number' || finalNumber < min || finalNumber > max) {
+                    console.warn('Cheated number is invalid or out of range. Reverting to a normal random number.');
                     finalNumber = getNormalRandom(min, max);
-                    if (activeCheat.mode === 'customSequence' || activeCheat.mode === 'guaranteed') {
-                        disableCheatMode();
+                    if (activeCheat.mode !== 'probability') {
+                         disableCheatMode();
                     }
                 }
 
@@ -365,7 +381,7 @@
             const disableCheatMode = () => {
                 activeCheat.mode = 'none';
                 activeCheat.settings = {};
-                console.log('作弊模式已关闭。');
+                console.log('Cheat mode disabled.');
             };
 
             mainTitle.addEventListener('click', () => {
@@ -417,8 +433,8 @@
                            originalGuaranteed: [...guaranteed],
                            numbersToPlace: [...guaranteed],
                            drawsLeft: n,
+                           originalDraws: n, // Store the original N for looping
                            loop,
-                           loopIndex: 0
                         }
                     };
                 } else if (activeTab === 'mode3') {
@@ -426,7 +442,7 @@
                      document.querySelectorAll('#probability-weights .weight-input').forEach(input => {
                          const num = input.dataset.num;
                          const weight = parseFloat(input.value);
-                         if (!isNaN(weight) && weight > 0 && weight !== 1) { // 只保存非默认的权重
+                         if (!isNaN(weight) && weight > 0 && weight !== 1) {
                              weights[num] = weight;
                          }
                      });
@@ -436,7 +452,7 @@
                      };
                 }
 
-                console.log('作弊设置已保存:', activeCheat);
+                console.log('Cheat settings saved:', activeCheat);
                 closeCheatModal();
             });
 
