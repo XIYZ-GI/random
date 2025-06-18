@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机数生成器</title>
+    
+    <!-- 引入 Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* 自定义样式 */
+        body {
+            /* 使用系统默认字体，确保在国内网络环境下快速加载和良好显示 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+        }
+        
+        /* 卡片玻璃拟态效果 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 自定义焦点样式 */
+        .focus-ring-purple {
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .focus-ring-purple:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.6);
+        }
+
+        /* 平滑过渡动画 */
+        .transition-all-smooth {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 模态框进入动画 */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4 transition-all-smooth bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900">
+
+    <!-- 主生成器容器 -->
+    <div id="generator-container" class="w-full max-w-md mx-auto">
+        <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-2xl shadow-purple-500/10">
+            <h1 id="main-title" class="text-3xl font-bold text-center mb-6 cursor-pointer select-none">随机数生成器</h1>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="min-val" class="block text-sm font-medium text-gray-300 mb-1">最小值</label>
+                        <input type="number" id="min-val" value="1" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple">
+                    </div>
+                    <div>
+                        <label for="max-val" class="block text-sm font-medium text-gray-300 mb-1">最大值</label>
+                        <input type="number" id="max-val" value="100" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple">
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all-smooth shadow-lg shadow-purple-500/20 transform hover:scale-105 active:scale-100">
+                    生成
+                </button>
+            </div>
+
+            <div class="text-center mt-8">
+                <p class="text-gray-400 text-sm mb-2">结果</p>
+                <div id="result" class="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 min-h-[84px] flex items-center justify-center">
+                    -
+                </div>
+            </div>
+        </div>
+        <p id="error-msg" class="text-red-400 text-center mt-4 h-5"></p>
+    </div>
+
+    <!-- 作弊模式模态框 -->
+    <div id="cheat-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden transition-all-smooth modal-enter">
+        <div class="glass-card w-full max-w-lg rounded-2xl shadow-2xl shadow-purple-500/20 relative transform transition-all-smooth">
+            <button id="close-cheat-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">&times;</button>
+            <div class="p-6 sm:p-8">
+                <h2 class="text-2xl font-bold mb-1">作弊模式</h2>
+                <p class="text-sm text-gray-400 mb-6">低调使用，后果自负。</p>
+
+                <!-- Tab 切换 -->
+                <div class="flex border-b border-gray-700 mb-4">
+                    <button data-tab="mode1" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-purple-500 text-white">自定义序列</button>
+                    <button data-tab="mode2" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">N次内必中</button>
+                    <button data-tab="mode3" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">概率权重</button>
+                </div>
+
+                <!-- Tab 内容 -->
+                <div id="cheat-content" class="min-h-[250px]">
+                    <!-- Mode 1: 自定义序列 -->
+                    <div id="mode1-content" class="tab-content space-y-4">
+                        <p class="text-sm text-gray-300">输入一个数字序列，用逗号、空格或换行分隔。</p>
+                        <textarea id="custom-sequence" rows="3" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple no-scrollbar" placeholder="例如: 7, 77, 777"></textarea>
+                        <div class="flex items-center space-x-4">
+                            <label class="text-sm text-gray-300">结束后:</label>
+                            <div class="flex items-center gap-4">
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">循环此序列</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">恢复正常</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode 2: N次内必中 -->
+                    <div id="mode2-content" class="tab-content space-y-4 hidden">
+                         <p class="text-sm text-gray-300">在指定的次数内，保证下列数字至少出现一次。</p>
+                        <div>
+                             <label class="text-sm font-medium text-gray-300">必中数字 (用逗号分隔):</label>
+                             <input type="text" id="guaranteed-numbers" class="w-full mt-1 bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple" placeholder="例如: 8, 88">
+                        </div>
+                        <div>
+                             <label class="text-sm font-medium text-gray-300">在接下来 <span id="n-times-value" class="font-bold text-purple-400">5</span> 次内生效:</label>
+                             <input type="range" id="n-times" min="1" max="50" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="text-sm text-gray-300">结束后:</label>
+                            <div class="flex items-center gap-4">
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">循环必中数</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">恢复正常</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode 3: 概率权重 -->
+                    <div id="mode3-content" class="tab-content space-y-4 hidden">
+                        <p class="text-sm text-gray-300">为范围内的特定数字设置概率倍数（1倍为正常概率）。</p>
+                        <div id="probability-weights" class="max-h-48 overflow-y-auto space-y-2 pr-2 no-scrollbar">
+                           <!-- 权重输入框将动态生成于此 -->
+                           <p class="text-gray-500 text-sm">请先在主界面设置有效的数字范围。</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="flex justify-end space-x-4 mt-6">
+                    <button id="disable-cheat-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all-smooth">关闭作弊</button>
+                    <button id="save-cheat-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-all-smooth">保存设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const minValInput = document.getElementById('min-val');
+            const maxValInput = document.getElementById('max-val');
+            const generateBtn = document.getElementById('generate-btn');
+            const resultDisplay = document.getElementById('result');
+            const errorMsg = document.getElementById('error-msg');
+            const mainTitle = document.getElementById('main-title');
+            
+            // Cheat Modal Elements
+            const cheatModal = document.getElementById('cheat-modal');
+            const closeCheatModalBtn = document.getElementById('close-cheat-modal');
+            const saveCheatBtn = document.getElementById('save-cheat-btn');
+            const disableCheatBtn = document.getElementById('disable-cheat-btn');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Generator State
+            let isGenerating = false;
+
+            // Cheat Mode State
+            let titleClickCount = 0;
+            let titleClickTimer = null;
+            let activeCheat = {
+                mode: 'none', // 'none', 'customSequence', 'guaranteed', 'probability'
+                settings: {}
+            };
+
+            // --- Core Generator Logic ---
+
+            const validateInputs = () => {
+                const min = parseInt(minValInput.value, 10);
+                const max = parseInt(maxValInput.value, 10);
+                errorMsg.textContent = '';
+                if (isNaN(min) || isNaN(max)) {
+                    errorMsg.textContent = '请输入有效的数字。';
+                    return false;
+                }
+                if (min >= max) {
+                    errorMsg.textContent = '最大值必须大于最小值。';
+                    return false;
+                }
+                return { min, max };
+            };
+
+            const animateNumber = (finalNumber) => {
+                isGenerating = true;
+                generateBtn.disabled = true;
+                resultDisplay.classList.remove('text-7xl');
+                resultDisplay.classList.add('text-6xl');
+                
+                let currentIteration = 0;
+                const maxIterations = 20; // 总共跳动20次
+                let intervalTime = 50; // 初始间隔
+
+                const animationStep = () => {
+                    const { min, max } = validateInputs();
+                    if (!min && !max) return;
+
+                    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
+                    resultDisplay.textContent = randomDisplay;
+
+                    currentIteration++;
+                    if (currentIteration > maxIterations) {
+                        resultDisplay.textContent = finalNumber;
+                        resultDisplay.classList.remove('text-6xl');
+                        resultDisplay.classList.add('text-7xl');
+                        isGenerating = false;
+                        generateBtn.disabled = false;
+                        return;
+                    }
+                    
+                    // **[OPTIMIZED]** 速度减慢的逻辑调整，使其不会在结尾过慢
+                    if (currentIteration > maxIterations * 0.5) {
+                        intervalTime *= 1.08; // 减小减速率
+                    }
+                     if (currentIteration > maxIterations * 0.8) {
+                        intervalTime *= 1.15; // 减小最后阶段的减速率
+                    }
+                    
+                    setTimeout(animationStep, intervalTime);
+                };
+
+                animationStep();
+            };
+
+            const getNormalRandom = (min, max) => {
+                 return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            const getCheatedNumber = (min, max) => {
+                const { mode, settings } = activeCheat;
+                
+                if (mode === 'customSequence') {
+                    if (!settings.sequence || settings.sequence.length === 0) {
+                        disableCheatMode();
+                        return getNormalRandom(min, max);
+                    }
+                    const number = settings.sequence[settings.currentIndex];
+                    settings.currentIndex++;
+                    if (settings.currentIndex >= settings.sequence.length) {
+                        if (settings.loop) {
+                            settings.currentIndex = 0;
+                        } else {
+                            disableCheatMode();
+                        }
+                    }
+                    return number;
+                }
+
+                if (mode === 'guaranteed') {
+                    if (settings.drawsLeft > 0 && settings.numbersToPlace.length > 0) {
+                        settings.drawsLeft--;
+                        const shouldPlaceGuaranteed = Math.random() < (settings.numbersToPlace.length / (settings.drawsLeft + 1));
+                        
+                        if (shouldPlaceGuaranteed) {
+                             const index = Math.floor(Math.random() * settings.numbersToPlace.length);
+                             const number = settings.numbersToPlace[index];
+                             settings.numbersToPlace.splice(index, 1);
+                             return number;
+                        }
+                    } else if (settings.drawsLeft === 0) {
+                        if (settings.loop && settings.originalGuaranteed.length > 0) {
+                             const number = settings.originalGuaranteed[settings.loopIndex];
+                             settings.loopIndex = (settings.loopIndex + 1) % settings.originalGuaranteed.length;
+                             return number;
+                        } else {
+                            disableCheatMode();
+                        }
+                    }
+                    return getNormalRandom(min, max);
+                }
+
+                if (mode === 'probability') {
+                    const weightedArray = [];
+                    for (let i = min; i <= max; i++) {
+                        // 权重可以是小数，通过乘以10来增加精度
+                        const weight = Math.round((settings.weights[i] || 1) * 10);
+                        for (let j = 0; j < weight; j++) {
+                            weightedArray.push(i);
+                        }
+                    }
+                    if (weightedArray.length === 0) return getNormalRandom(min, max);
+                    const randomIndex = Math.floor(Math.random() * weightedArray.length);
+                    return weightedArray[randomIndex];
+                }
+
+                return getNormalRandom(min, max);
+            };
+
+            generateBtn.addEventListener('click', () => {
+                if (isGenerating) return;
+                const range = validateInputs();
+                if (!range) return;
+
+                const { min, max } = range;
+                let finalNumber;
+
+                if (activeCheat.mode === 'none') {
+                    finalNumber = getNormalRandom(min, max);
+                } else {
+                    finalNumber = getCheatedNumber(min, max);
+                }
+                
+                if(finalNumber < min || finalNumber > max) {
+                    console.warn('作弊数值超出范围，已重置为范围内随机数。');
+                    finalNumber = getNormalRandom(min, max);
+                    if (activeCheat.mode === 'customSequence' || activeCheat.mode === 'guaranteed') {
+                        disableCheatMode();
+                    }
+                }
+
+                animateNumber(finalNumber);
+            });
+            
+            [minValInput, maxValInput].forEach(input => {
+                input.addEventListener('input', () => {
+                   validateInputs();
+                   updateProbabilityInputs();
+                });
+            });
+
+
+            // --- Cheat Modal Logic ---
+
+            const openCheatModal = () => {
+                updateProbabilityInputs();
+                cheatModal.classList.remove('hidden', 'modal-enter');
+                requestAnimationFrame(() => {
+                    cheatModal.classList.add('modal-enter-active');
+                });
+            };
+
+            const closeCheatModal = () => {
+                cheatModal.classList.remove('modal-enter-active');
+                cheatModal.classList.add('modal-enter');
+                setTimeout(() => {
+                    cheatModal.classList.add('hidden');
+                }, 300);
+            };
+
+            const disableCheatMode = () => {
+                activeCheat.mode = 'none';
+                activeCheat.settings = {};
+                console.log('作弊模式已关闭。');
+            };
+
+            mainTitle.addEventListener('click', () => {
+                titleClickCount++;
+                if (titleClickCount === 1) {
+                    titleClickTimer = setTimeout(() => {
+                        titleClickCount = 0;
+                    }, 500);
+                }
+                if (titleClickCount === 3) {
+                    clearTimeout(titleClickTimer);
+                    titleClickCount = 0;
+                    openCheatModal();
+                }
+            });
+
+            closeCheatModalBtn.addEventListener('click', closeCheatModal);
+            
+            disableCheatBtn.addEventListener('click', () => {
+                disableCheatMode();
+                closeCheatModal();
+            });
+
+            saveCheatBtn.addEventListener('click', () => {
+                const activeTab = document.querySelector('.tab-btn[data-tab].border-purple-500').dataset.tab;
+                
+                if (activeTab === 'mode1') {
+                    const sequenceStr = document.getElementById('custom-sequence').value;
+                    const sequence = sequenceStr.split(/[\s,，\n]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
+                    const loop = document.querySelector('input[name="mode1-action"]:checked').value === 'loop';
+                    
+                    activeCheat = {
+                        mode: 'customSequence',
+                        settings: {
+                            sequence,
+                            currentIndex: 0,
+                            loop
+                        }
+                    };
+                } else if (activeTab === 'mode2') {
+                    const guaranteedStr = document.getElementById('guaranteed-numbers').value;
+                    const guaranteed = guaranteedStr.split(/[\s,，]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
+                    const n = parseInt(document.getElementById('n-times').value, 10);
+                    const loop = document.querySelector('input[name="mode2-action"]:checked').value === 'loop';
+
+                    activeCheat = {
+                        mode: 'guaranteed',
+                        settings: {
+                           originalGuaranteed: [...guaranteed],
+                           numbersToPlace: [...guaranteed],
+                           drawsLeft: n,
+                           loop,
+                           loopIndex: 0
+                        }
+                    };
+                } else if (activeTab === 'mode3') {
+                     const weights = {};
+                     document.querySelectorAll('#probability-weights .weight-input').forEach(input => {
+                         const num = input.dataset.num;
+                         const weight = parseFloat(input.value);
+                         if (!isNaN(weight) && weight > 0 && weight !== 1) { // 只保存非默认的权重
+                             weights[num] = weight;
+                         }
+                     });
+                     activeCheat = {
+                         mode: 'probability',
+                         settings: { weights }
+                     };
+                }
+
+                console.log('作弊设置已保存:', activeCheat);
+                closeCheatModal();
+            });
+
+            // Tab switching
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => {
+                        b.classList.remove('border-purple-500', 'text-white');
+                        b.classList.add('border-transparent', 'text-gray-400');
+                    });
+                    btn.classList.add('border-purple-500', 'text-white');
+                    btn.classList.remove('border-transparent', 'text-gray-400');
+
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    document.getElementById(btn.dataset.tab + '-content').classList.remove('hidden');
+                });
+            });
+
+            // Update N-times slider display
+            const nTimesInput = document.getElementById('n-times');
+            const nTimesValue = document.getElementById('n-times-value');
+            if (nTimesInput) {
+                nTimesInput.addEventListener('input', (e) => {
+                    nTimesValue.textContent = e.target.value;
+                });
+            }
+
+            // Update probability inputs dynamically
+            function updateProbabilityInputs() {
+                const container = document.getElementById('probability-weights');
+                const range = validateInputs();
+                if (!range) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">请先在主界面设置有效的数字范围。</p>';
+                    return;
+                }
+                
+                const { min, max } = range;
+                if (max - min > 100) {
+                     container.innerHTML = '<p class="text-yellow-400 text-sm">范围过大 (超过100个数字)，为保证性能已禁用此模式。</p>';
+                    return;
+                }
+                
+                const existingWeights = activeCheat.mode === 'probability' ? activeCheat.settings.weights : {};
+
+                container.innerHTML = '';
+                for (let i = min; i <= max; i++) {
+                    const defaultValue = existingWeights[i] || 1;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between';
+                    div.innerHTML = `
+                        <label class="text-gray-300">数字 ${i}:</label>
+                        <input type="number" step="0.1" min="0" value="${defaultValue}" data-num="${i}" class="weight-input w-24 bg-gray-700/50 border border-gray-600 rounded-md p-1 text-white text-right focus-ring-purple">
+                    `;
+                    container.appendChild(div);
+                }
+            }
+
+            // Initial validation check
+            validateInputs();
+        });
+    </script>
+
+</body>
+</html>
