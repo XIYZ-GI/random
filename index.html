@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机数生成器 - 转盘版</title>
+    <title>随机数生成器</title>
     
     <!-- Using Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,29 +11,36 @@
     <style>
         /* Custom styles */
         body {
+            /* Use system default fonts to ensure fast loading and good display */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overflow: hidden; 
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+            overflow: hidden; /* Prevent bouncing on mobile */
         }
         
-        /* [THEME CHANGE] Changed to a light card style */
-        .light-card {
-            background-color: white;
-            border: 1px solid #e2e8f0; /* slate-200 */
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        /* Glass card effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         /* Hide scrollbar */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         /* Custom focus ring style */
-        .focus-ring-blue {
+        .focus-ring-purple {
             transition: box-shadow 0.2s ease-in-out;
         }
-        .focus-ring-blue:focus {
+        .focus-ring-purple:focus {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.6);
         }
 
         /* Smooth transition animation */
@@ -42,110 +49,114 @@
         }
 
         /* Modal entrance animation */
-        .modal-enter { opacity: 0; transform: scale(0.95); }
-        .modal-enter-active { opacity: 1; transform: scale(1); }
-        
-        /* Roulette Styles */
-        #roulette-container {
-            position: relative;
-            width: 100%;
-            height: 80px;
-            overflow: hidden;
-            mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent 100%);
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
         }
-        #roulette-track {
-            display: flex;
-            height: 100%;
-            position: absolute;
-            left: 0;
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
         }
-        .roulette-number {
-            flex-shrink: 0;
-            width: 80px;
-            height: 100%; /* Fill the container height */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: #94a3b8; /* slate-400 */
-            transition: all 0.3s ease;
-        }
-        .roulette-number.active {
-            color: #1e40af; /* blue-800 */
-            transform: scale(1.5);
-            font-weight: 700;
-        }
-        #pointer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            border: 2px solid #3b82f6; /* blue-500 */
-            border-radius: 0.75rem;
-            z-index: 10;
-        }
-
     </style>
 </head>
-<!-- [THEME CHANGE] Switched to a light blue/white theme -->
-<body class="bg-slate-50 text-slate-800 flex items-center justify-center p-4 transition-all-smooth bg-gradient-to-br from-blue-50 via-white to-blue-50 h-[100svh]">
+<!-- [UI FIX] Use h-[100svh] to prevent virtual keyboard from pushing the layout up -->
+<body class="bg-gray-900 text-white flex items-center justify-center p-4 transition-all-smooth bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 h-[100svh]">
 
+    <!-- Main generator container -->
+    <!-- [UI FIX] Changed max-w-md to max-w-lg for a wider card on desktop -->
     <div id="generator-container" class="w-full max-w-lg mx-auto">
-        <div class="light-card p-6 sm:p-8 rounded-2xl">
-            <h1 id="main-title" class="text-3xl font-bold text-center mb-6 cursor-pointer select-none text-slate-900">随机数生成器</h1>
+        <div class="glass-card p-6 sm:p-8 rounded-2xl shadow-2xl shadow-purple-500/10">
+            <h1 id="main-title" class="text-3xl font-bold text-center mb-6 cursor-pointer select-none">随机数生成器</h1>
             
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="min-val" class="block text-sm font-medium text-slate-600 mb-1">最小值</label>
-                        <input type="number" id="min-val" value="1" class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-800 focus-ring-blue">
+                        <label for="min-val" class="block text-sm font-medium text-gray-300 mb-1">最小值</label>
+                        <input type="number" id="min-val" value="1" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple">
                     </div>
                     <div>
-                        <label for="max-val" class="block text-sm font-medium text-slate-600 mb-1">最大值</label>
-                        <input type="number" id="max-val" value="100" class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-800 focus-ring-blue">
+                        <label for="max-val" class="block text-sm font-medium text-gray-300 mb-1">最大值</label>
+                        <input type="number" id="max-val" value="100" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple">
                     </div>
                 </div>
 
-                <button id="generate-btn" class="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all-smooth shadow-lg shadow-blue-500/20 transform hover:scale-105 active:scale-100">
+                <button id="generate-btn" class="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all-smooth shadow-lg shadow-purple-500/20 transform hover:scale-105 active:scale-100">
                     生成
                 </button>
             </div>
 
-            <!-- Roulette display area -->
             <div class="text-center mt-8">
-                <!-- [ALIGNMENT FIX] Moved pointer inside the container -->
-                <div id="roulette-container">
-                    <div id="roulette-track"></div>
-                    <div id="pointer"></div>
-                </div>
-                <p class="text-slate-500 text-sm mb-2 mt-4">结果</p>
-                <div id="final-result" class="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 min-h-[84px] flex items-center justify-center">
+                <p class="text-gray-400 text-sm mb-2">结果</p>
+                <div id="result" class="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 min-h-[84px] flex items-center justify-center">
                     -
                 </div>
             </div>
         </div>
-        <p id="error-msg" class="text-red-500 text-center mt-4 h-5"></p>
+        <p id="error-msg" class="text-red-400 text-center mt-4 h-5"></p>
     </div>
 
     <!-- Cheat mode modal -->
-    <div id="cheat-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden transition-all-smooth modal-enter">
-        <div class="light-card w-full max-w-lg rounded-2xl relative transform transition-all-smooth">
-            <button id="close-cheat-modal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors">&times;</button>
+    <div id="cheat-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden transition-all-smooth modal-enter">
+        <div class="glass-card w-full max-w-lg rounded-2xl shadow-2xl shadow-purple-500/20 relative transform transition-all-smooth">
+            <button id="close-cheat-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">&times;</button>
             <div class="p-6 sm:p-8">
-                <h2 class="text-2xl font-bold mb-1 text-slate-900">作弊模式</h2>
-                <p class="text-sm text-slate-500 mb-6">低调使用，后果自负。</p>
-                <div class="flex border-b border-slate-200 mb-4">
-                    <button data-tab="mode1" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">自定义序列</button>
-                    <button data-tab="mode2" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition-all-smooth">N次内必中</button>
-                    <button data-tab="mode3" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition-all-smooth">概率权重</button>
+                <h2 class="text-2xl font-bold mb-1">作弊模式</h2>
+                <p class="text-sm text-gray-400 mb-6">低调使用，后果自负。</p>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-700 mb-4">
+                    <button data-tab="mode1" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-purple-500 text-white">自定义序列</button>
+                    <button data-tab="mode2" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">N次内必中</button>
+                    <button data-tab="mode3" class="tab-btn flex-1 py-2 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition-all-smooth">概率权重</button>
                 </div>
-                <div id="cheat-content" class="min-h-[250px]"></div>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button id="disable-cheat-btn" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-all-smooth">关闭作弊</button>
-                    <button id="save-cheat-btn" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-all-smooth">保存设置</button>
+
+                <!-- Tab Content -->
+                <div id="cheat-content" class="min-h-[250px]">
+                    <!-- Mode 1: Custom Sequence -->
+                    <div id="mode1-content" class="tab-content space-y-4">
+                        <p class="text-sm text-gray-300">输入一个数字序列，用逗号、空格或换行分隔。</p>
+                        <textarea id="custom-sequence" rows="3" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple no-scrollbar" placeholder="例如: 7, 77, 777"></textarea>
+                        <div class="flex items-center space-x-4">
+                            <label class="text-sm text-gray-300">结束后:</label>
+                            <div class="flex items-center gap-4">
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">循环此序列</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">恢复正常</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode 2: Guaranteed within N times -->
+                    <div id="mode2-content" class="tab-content space-y-4 hidden">
+                         <p class="text-sm text-gray-300">在指定的次数内，保证下列数字至少出现一次。</p>
+                        <div>
+                             <label class="text-sm font-medium text-gray-300">必中数字 (用逗号分隔):</label>
+                             <input type="text" id="guaranteed-numbers" class="w-full mt-1 bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-white focus-ring-purple" placeholder="例如: 1, 5, 8">
+                        </div>
+                        <div>
+                             <label class="text-sm font-medium text-gray-300">在接下来 <span id="n-times-value" class="font-bold text-purple-400">7</span> 次内生效:</label>
+                             <input type="range" id="n-times" min="1" max="50" value="7" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="text-sm text-gray-300">结束后:</label>
+                            <div class="flex items-center gap-4">
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="loop" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600" checked> <span class="ml-2">循环此规则</span></label>
+                               <label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="random" class="form-radio h-4 w-4 text-purple-600 bg-gray-700 border-gray-600"> <span class="ml-2">恢复正常</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode 3: Probability Weight -->
+                    <div id="mode3-content" class="tab-content space-y-4 hidden">
+                        <p class="text-sm text-gray-300">为范围内的特定数字设置概率倍数（1倍为正常概率）。</p>
+                        <div id="probability-weights" class="max-h-48 overflow-y-auto space-y-2 pr-2 no-scrollbar">
+                           <!-- Weight inputs will be dynamically generated here -->
+                           <p class="text-gray-500 text-sm">请先在主界面设置有效的数字范围。</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="flex justify-end space-x-4 mt-6">
+                    <button id="disable-cheat-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all-smooth">关闭作弊</button>
+                    <button id="save-cheat-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-all-smooth">保存设置</button>
                 </div>
             </div>
         </div>
@@ -154,132 +165,165 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
             const minValInput = document.getElementById('min-val');
             const maxValInput = document.getElementById('max-val');
             const generateBtn = document.getElementById('generate-btn');
-            const finalResultDisplay = document.getElementById('final-result');
+            const resultDisplay = document.getElementById('result');
             const errorMsg = document.getElementById('error-msg');
             const mainTitle = document.getElementById('main-title');
-            const rouletteTrack = document.getElementById('roulette-track');
-            const rouletteContainer = document.getElementById('roulette-container');
+            
+            // Cheat Modal Elements
             const cheatModal = document.getElementById('cheat-modal');
             const closeCheatModalBtn = document.getElementById('close-cheat-modal');
             const saveCheatBtn = document.getElementById('save-cheat-btn');
             const disableCheatBtn = document.getElementById('disable-cheat-btn');
-            const cheatContentContainer = document.getElementById('cheat-content');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Generator State
             let isGenerating = false;
+
+            // Cheat Mode State
             let titleClickCount = 0;
             let titleClickTimer = null;
-            let activeCheat = { mode: 'none', settings: {} };
-
-            const animateWheel = (finalNumber) => {
-                const { min, max } = validateInputs();
-                if (!min && !max) return;
-
-                isGenerating = true;
-                generateBtn.disabled = true;
-                finalResultDisplay.textContent = '-';
-                
-                rouletteTrack.innerHTML = '';
-                rouletteTrack.style.transition = 'none';
-                
-                const wheelNumbers = [];
-                const wheelSize = 150; 
-                const targetIndex = 140; 
-                const numberWidth = 80;
-
-                for (let i = 0; i < wheelSize; i++) {
-                    wheelNumbers.push(i === targetIndex ? finalNumber : getNormalRandom(min, max));
-                }
-                
-                wheelNumbers.forEach(num => {
-                    const numberEl = document.createElement('div');
-                    numberEl.className = 'roulette-number';
-                    numberEl.textContent = num;
-                    rouletteTrack.appendChild(numberEl);
-                });
-
-                rouletteTrack.style.transform = `translateX(0px)`;
-                
-                setTimeout(() => {
-                    const containerWidth = rouletteContainer.clientWidth;
-                    const targetCenterPosition = (targetIndex * numberWidth) + (numberWidth / 2);
-                    let targetPosition = (containerWidth / 2) - targetCenterPosition;
-                    const randomOffset = (Math.random() - 0.5) * (numberWidth * 0.4);
-                    targetPosition += randomOffset;
-
-                    rouletteTrack.style.transition = `transform 5s cubic-bezier(0.2, 0.9, 0.3, 1)`;
-                    rouletteTrack.style.transform = `translateX(${targetPosition}px)`;
-                }, 100);
-
-                rouletteTrack.addEventListener('transitionend', () => {
-                    const targetElement = rouletteTrack.children[targetIndex];
-                    if(targetElement) targetElement.classList.add('active');
-                    finalResultDisplay.textContent = finalNumber;
-                    isGenerating = false;
-                    generateBtn.disabled = false;
-                }, { once: true });
+            let activeCheat = {
+                mode: 'none', // 'none', 'customSequence', 'guaranteed', 'probability'
+                settings: {}
             };
+
+            // --- Core Generator Logic ---
 
             const validateInputs = () => {
                 const min = parseInt(minValInput.value, 10);
                 const max = parseInt(maxValInput.value, 10);
                 errorMsg.textContent = '';
                 if (isNaN(min) || isNaN(max)) {
-                    errorMsg.textContent = '请输入有效的数字。'; return false;
+                    errorMsg.textContent = '请输入有效的数字。';
+                    return false;
                 }
                 if (min >= max) {
-                    errorMsg.textContent = '最大值必须大于最小值。'; return false;
+                    errorMsg.textContent = '最大值必须大于最小值。';
+                    return false;
                 }
                 return { min, max };
             };
 
-            const getNormalRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const animateNumber = (finalNumber) => {
+                isGenerating = true;
+                generateBtn.disabled = true;
+                resultDisplay.classList.remove('text-7xl');
+                resultDisplay.classList.add('text-6xl');
+                
+                let currentIteration = 0;
+                const maxIterations = 20; 
+                let intervalTime = 50; 
+
+                const animationStep = () => {
+                    const { min, max } = validateInputs();
+                    if (!min && !max) return;
+
+                    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
+                    resultDisplay.textContent = randomDisplay;
+
+                    currentIteration++;
+                    if (currentIteration > maxIterations) {
+                        resultDisplay.textContent = finalNumber;
+                        resultDisplay.classList.remove('text-6xl');
+                        resultDisplay.classList.add('text-7xl');
+                        isGenerating = false;
+                        generateBtn.disabled = false;
+                        return;
+                    }
+                    
+                    if (currentIteration > maxIterations * 0.5) {
+                        intervalTime *= 1.08;
+                    }
+                     if (currentIteration > maxIterations * 0.8) {
+                        intervalTime *= 1.15;
+                    }
+                    
+                    setTimeout(animationStep, intervalTime);
+                };
+
+                animationStep();
+            };
+
+            const getNormalRandom = (min, max) => {
+                 return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
 
             const getCheatedNumber = (min, max) => {
                 const { mode, settings } = activeCheat;
+                
                 if (mode === 'customSequence') {
                     if (!settings.sequence || settings.sequence.length === 0) {
-                        disableCheatMode(); return getNormalRandom(min, max);
+                        disableCheatMode();
+                        return getNormalRandom(min, max);
                     }
                     const number = settings.sequence[settings.currentIndex];
-                    settings.currentIndex = (settings.currentIndex + 1);
+                    settings.currentIndex++;
                     if (settings.currentIndex >= settings.sequence.length) {
-                        if (settings.loop) { settings.currentIndex = 0; } 
-                        else { disableCheatMode(); }
+                        if (settings.loop) {
+                            settings.currentIndex = 0;
+                        } else {
+                            disableCheatMode();
+                        }
                     }
                     return number;
                 }
+
                 if (mode === 'guaranteed') {
+                    // **[BUG FIX & EXPLANATION]**
+                    // This logic ensures the loop works correctly.
+
+                    // 1. Check if the previous cycle has just finished (drawsLeft is 0 or less).
                     if (settings.drawsLeft <= 0) {
                         if (settings.loop) {
+                            // 2. If looping is on, completely reset the state for a new cycle.
+                            console.log("Guaranteed mode: Resetting for a new loop cycle.");
                             settings.numbersToPlace = [...settings.originalGuaranteed];
                             settings.drawsLeft = settings.originalDraws;
                         } else {
-                            disableCheatMode(); return getNormalRandom(min, max);
+                            // 3. If not looping, the cheat mode is over. Disable it.
+                            console.log("Guaranteed mode: Cycle finished, not looping. Disabling cheat.");
+                            disableCheatMode();
+                            return getNormalRandom(min, max);
                         }
                     }
-                    let numberToReturn = getNormalRandom(min, max);
+
+                    // 4. Now, with a valid (or newly reset) state, execute the logic for the CURRENT turn.
+                    let numberToReturn = getNormalRandom(min, max); // Default to a normal random number.
+
                     if (settings.numbersToPlace.length > 0) {
+                         // The probability of placing a guaranteed number increases as fewer draws are left.
                          const probability = settings.numbersToPlace.length / settings.drawsLeft;
                          if (Math.random() < probability) {
                              const index = Math.floor(Math.random() * settings.numbersToPlace.length);
                              numberToReturn = settings.numbersToPlace.splice(index, 1)[0];
                          }
                     }
+                    
+                    // 5. Decrement the counter for the current cycle *after* this turn's logic is complete.
                     settings.drawsLeft--;
+                    
                     return numberToReturn;
                 }
+
+
                 if (mode === 'probability') {
                     const weightedArray = [];
                     for (let i = min; i <= max; i++) {
                         const weight = Math.round((settings.weights[i] || 1) * 10);
-                        for (let j = 0; j < weight; j++) { weightedArray.push(i); }
+                        for (let j = 0; j < weight; j++) {
+                            weightedArray.push(i);
+                        }
                     }
                     if (weightedArray.length === 0) return getNormalRandom(min, max);
                     const randomIndex = Math.floor(Math.random() * weightedArray.length);
                     return weightedArray[randomIndex];
                 }
+
                 return getNormalRandom(min, max);
             };
 
@@ -287,53 +331,65 @@
                 if (isGenerating) return;
                 const range = validateInputs();
                 if (!range) return;
-                const { min, max } = range;
-                let finalNumber = activeCheat.mode === 'none' ? getNormalRandom(min, max) : getCheatedNumber(min, max);
-                if (typeof finalNumber !== 'number' || finalNumber < min || finalNumber > max) {
-                    finalNumber = getNormalRandom(min, max);
-                    if (activeCheat.mode !== 'probability') { disableCheatMode(); }
-                }
-                animateWheel(finalNumber);
-            });
 
+                const { min, max } = range;
+                let finalNumber;
+
+                if (activeCheat.mode === 'none') {
+                    finalNumber = getNormalRandom(min, max);
+                } else {
+                    finalNumber = getCheatedNumber(min, max);
+                }
+                
+                if(typeof finalNumber !== 'number' || finalNumber < min || finalNumber > max) {
+                    console.warn('Cheated number is invalid or out of range. Reverting to a normal random number.');
+                    finalNumber = getNormalRandom(min, max);
+                    if (activeCheat.mode !== 'probability') {
+                         disableCheatMode();
+                    }
+                }
+
+                animateNumber(finalNumber);
+            });
+            
             [minValInput, maxValInput].forEach(input => {
                 input.addEventListener('input', () => {
                    validateInputs();
-                   if (document.getElementById('probability-weights')) {
-                       updateProbabilityInputs();
-                   }
+                   updateProbabilityInputs();
                 });
             });
 
-            function setupCheatModalContent() {
-                cheatContentContainer.innerHTML = `
-                    <div id="mode1-content" class="tab-content space-y-4"><p class="text-sm text-slate-600">输入一个数字序列，用逗号、空格或换行分隔。</p><textarea id="custom-sequence" rows="3" class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-800 focus-ring-blue no-scrollbar" placeholder="例如: 7, 77, 777"></textarea><div class="flex items-center space-x-4"><label class="text-sm text-slate-600">结束后:</label><div class="flex items-center gap-4"><label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="loop" class="form-radio h-4 w-4 text-blue-600 border-slate-300" checked> <span class="ml-2">循环此序列</span></label><label class="flex items-center cursor-pointer"><input type="radio" name="mode1-action" value="random" class="form-radio h-4 w-4 text-blue-600 border-slate-300"> <span class="ml-2">恢复正常</span></label></div></div></div>
-                    <div id="mode2-content" class="tab-content space-y-4 hidden"><p class="text-sm text-slate-600">在指定的次数内，保证下列数字至少出现一次。</p><div><label class="text-sm font-medium text-slate-600">必中数字 (用逗号分隔):</label><input type="text" id="guaranteed-numbers" class="w-full mt-1 bg-white border border-slate-300 rounded-lg p-3 text-slate-800 focus-ring-blue" placeholder="例如: 1, 5, 8"></div><div><label class="text-sm font-medium text-slate-600">在接下来 <span id="n-times-value" class="font-bold text-blue-600">7</span> 次内生效:</label><input type="range" id="n-times" min="1" max="50" value="7" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"></div><div class="flex items-center space-x-4"><label class="text-sm text-slate-600">结束后:</label><div class="flex items-center gap-4"><label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="loop" class="form-radio h-4 w-4 text-blue-600 border-slate-300" checked> <span class="ml-2">循环此规则</span></label><label class="flex items-center cursor-pointer"><input type="radio" name="mode2-action" value="random" class="form-radio h-4 w-4 text-blue-600 border-slate-300"> <span class="ml-2">恢复正常</span></label></div></div></div>
-                    <div id="mode3-content" class="tab-content space-y-4 hidden"><p class="text-sm text-slate-600">为范围内的特定数字设置概率倍数（1倍为正常概率）。</p><div id="probability-weights" class="max-h-48 overflow-y-auto space-y-2 pr-2 no-scrollbar"><p class="text-slate-400 text-sm">请先在主界面设置有效的数字范围。</p></div></div>`;
-                document.getElementById('n-times').addEventListener('input', (e) => {
-                    document.getElementById('n-times-value').textContent = e.target.value;
-                });
-            }
+
+            // --- Cheat Modal Logic ---
 
             const openCheatModal = () => {
                 updateProbabilityInputs();
                 cheatModal.classList.remove('hidden', 'modal-enter');
-                requestAnimationFrame(() => cheatModal.classList.add('modal-enter-active'));
+                requestAnimationFrame(() => {
+                    cheatModal.classList.add('modal-enter-active');
+                });
             };
+
             const closeCheatModal = () => {
                 cheatModal.classList.remove('modal-enter-active');
                 cheatModal.classList.add('modal-enter');
-                setTimeout(() => cheatModal.classList.add('hidden'), 300);
+                setTimeout(() => {
+                    cheatModal.classList.add('hidden');
+                }, 300);
             };
+
             const disableCheatMode = () => {
-                activeCheat = { mode: 'none', settings: {} };
+                activeCheat.mode = 'none';
+                activeCheat.settings = {};
                 console.log('Cheat mode disabled.');
             };
 
             mainTitle.addEventListener('click', () => {
                 titleClickCount++;
                 if (titleClickCount === 1) {
-                    titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 500);
+                    titleClickTimer = setTimeout(() => {
+                        titleClickCount = 0;
+                    }, 500);
                 }
                 if (titleClickCount === 3) {
                     clearTimeout(titleClickTimer);
@@ -343,71 +399,121 @@
             });
 
             closeCheatModalBtn.addEventListener('click', closeCheatModal);
+            
             disableCheatBtn.addEventListener('click', () => {
                 disableCheatMode();
                 closeCheatModal();
             });
 
             saveCheatBtn.addEventListener('click', () => {
-                const activeTab = cheatModal.querySelector('.tab-btn.border-blue-500').dataset.tab;
+                const activeTab = document.querySelector('.tab-btn[data-tab].border-purple-500').dataset.tab;
+                
                 if (activeTab === 'mode1') {
-                    const seq = cheatModal.querySelector('#custom-sequence').value.split(/[\s,，\n]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
-                    const loop = cheatModal.querySelector('input[name="mode1-action"]:checked').value === 'loop';
-                    activeCheat = { mode: 'customSequence', settings: { sequence: seq, currentIndex: 0, loop } };
+                    const sequenceStr = document.getElementById('custom-sequence').value;
+                    const sequence = sequenceStr.split(/[\s,，\n]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
+                    const loop = document.querySelector('input[name="mode1-action"]:checked').value === 'loop';
+                    
+                    activeCheat = {
+                        mode: 'customSequence',
+                        settings: {
+                            sequence,
+                            currentIndex: 0,
+                            loop
+                        }
+                    };
                 } else if (activeTab === 'mode2') {
-                    const guaranteed = cheatModal.querySelector('#guaranteed-numbers').value.split(/[\s,，]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
-                    const n = parseInt(cheatModal.querySelector('#n-times').value, 10);
-                    const loop = cheatModal.querySelector('input[name="mode2-action"]:checked').value === 'loop';
-                    activeCheat = { mode: 'guaranteed', settings: { originalGuaranteed: [...guaranteed], numbersToPlace: [...guaranteed], drawsLeft: n, originalDraws: n, loop } };
+                    const guaranteedStr = document.getElementById('guaranteed-numbers').value;
+                    const guaranteed = guaranteedStr.split(/[\s,，]+/).filter(Boolean).map(Number).filter(n => !isNaN(n));
+                    const n = parseInt(document.getElementById('n-times').value, 10);
+                    const loop = document.querySelector('input[name="mode2-action"]:checked').value === 'loop';
+
+                    activeCheat = {
+                        mode: 'guaranteed',
+                        settings: {
+                           originalGuaranteed: [...guaranteed],
+                           numbersToPlace: [...guaranteed],
+                           drawsLeft: n,
+                           originalDraws: n, // Store the original N for looping
+                           loop,
+                        }
+                    };
                 } else if (activeTab === 'mode3') {
-                    const weights = {};
-                    cheatModal.querySelectorAll('#probability-weights .weight-input').forEach(i => {
-                        const w = parseFloat(i.value);
-                        if (!isNaN(w) && w > 0 && w !== 1) { weights[i.dataset.num] = w; }
-                    });
-                    activeCheat = { mode: 'probability', settings: { weights } };
+                     const weights = {};
+                     document.querySelectorAll('#probability-weights .weight-input').forEach(input => {
+                         const num = input.dataset.num;
+                         const weight = parseFloat(input.value);
+                         if (!isNaN(weight) && weight > 0 && weight !== 1) {
+                             weights[num] = weight;
+                         }
+                     });
+                     activeCheat = {
+                         mode: 'probability',
+                         settings: { weights }
+                     };
                 }
+
+                console.log('Cheat settings saved:', activeCheat);
                 closeCheatModal();
             });
-            
-            cheatModal.querySelectorAll('.tab-btn').forEach(btn => {
+
+            // Tab switching
+            tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    cheatModal.querySelectorAll('.tab-btn').forEach(b => {
-                        b.classList.replace('border-blue-500', 'border-transparent');
-                        b.classList.replace('text-blue-600', 'text-slate-500');
+                    tabBtns.forEach(b => {
+                        b.classList.remove('border-purple-500', 'text-white');
+                        b.classList.add('border-transparent', 'text-gray-400');
                     });
-                    btn.classList.replace('border-transparent', 'border-blue-500');
-                    btn.classList.replace('text-slate-500', 'text-blue-600');
-                    cheatModal.querySelectorAll('#cheat-content .tab-content').forEach(c => c.classList.add('hidden'));
-                    cheatModal.querySelector(`#${btn.dataset.tab}-content`).classList.remove('hidden');
+                    btn.classList.add('border-purple-500', 'text-white');
+                    btn.classList.remove('border-transparent', 'text-gray-400');
+
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    document.getElementById(btn.dataset.tab + '-content').classList.remove('hidden');
                 });
             });
 
+            // Update N-times slider display
+            const nTimesInput = document.getElementById('n-times');
+            const nTimesValue = document.getElementById('n-times-value');
+            if (nTimesInput) {
+                nTimesInput.addEventListener('input', (e) => {
+                    nTimesValue.textContent = e.target.value;
+                });
+            }
+
+            // Update probability inputs dynamically
             function updateProbabilityInputs() {
                 const container = document.getElementById('probability-weights');
-                if (!container) return;
                 const range = validateInputs();
                 if (!range) {
-                    container.innerHTML = '<p class="text-slate-400 text-sm">请先在主界面设置有效的数字范围。</p>'; return;
+                    container.innerHTML = '<p class="text-gray-500 text-sm">请先在主界面设置有效的数字范围。</p>';
+                    return;
                 }
+                
                 const { min, max } = range;
                 if (max - min > 100) {
-                     container.innerHTML = '<p class="text-yellow-500 text-sm">范围过大 (超过100个数字)，为保证性能已禁用此模式。</p>'; return;
+                     container.innerHTML = '<p class="text-yellow-400 text-sm">范围过大 (超过100个数字)，为保证性能已禁用此模式。</p>';
+                    return;
                 }
-                const weights = activeCheat.mode === 'probability' ? activeCheat.settings.weights : {};
+                
+                const existingWeights = activeCheat.mode === 'probability' ? activeCheat.settings.weights : {};
+
                 container.innerHTML = '';
                 for (let i = min; i <= max; i++) {
-                    const val = weights[i] || 1;
+                    const defaultValue = existingWeights[i] || 1;
                     const div = document.createElement('div');
                     div.className = 'flex items-center justify-between';
-                    div.innerHTML = `<label class="text-slate-600">数字 ${i}:</label> <input type="number" step="0.1" min="0" value="${val}" data-num="${i}" class="weight-input w-24 bg-white border border-slate-300 rounded-md p-1 text-slate-800 text-right focus-ring-blue">`;
+                    div.innerHTML = `
+                        <label class="text-gray-300">数字 ${i}:</label>
+                        <input type="number" step="0.1" min="0" value="${defaultValue}" data-num="${i}" class="weight-input w-24 bg-gray-700/50 border border-gray-600 rounded-md p-1 text-white text-right focus-ring-purple">
+                    `;
                     container.appendChild(div);
                 }
             }
 
-            setupCheatModalContent();
+            // Initial validation check
             validateInputs();
         });
     </script>
+
 </body>
 </html>
